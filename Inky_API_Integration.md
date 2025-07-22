@@ -1,0 +1,241 @@
+# Inky Factory API Integration Guide
+
+Welcome to the Inky Factory API! This guide will help you integrate token deployment and metadata features from Inky Factory into your own application.
+
+---
+
+## Table of Contents
+- [Overview](#overview)
+- [Endpoints](#endpoints)
+- [Token Launch API](#token-launch-api)
+- [Token Metadata API](#token-metadata-api)
+- [Image Upload & Resizing](#image-upload--resizing)
+- [Sample Integration Flow](#sample-integration-flow)
+- [Best Practices & Recommendations](#best-practices--recommendations)
+- [Support](#support)
+
+---
+
+## Overview
+Inky Factory enables:
+- Cross-chain EVM token launches (ETH, Base, Ink, BNB, and more)
+- Custom branding and metadata for each token
+- Real-time token metadata and stats
+
+You can:
+- Launch new tokens programmatically from your app, including image/logo uploads
+- Fetch all token metadata for display or analytics
+
+---
+
+## Endpoints
+
+### 1. **Token Launch API**
+- **Endpoint:** `POST /launch`
+- **Description:** Deploy a new token and register its metadata (including logo and cover photo)
+- **Content-Type:** `application/json`
+
+### 2. **Token Metadata API**
+- **Endpoint:** `GET /recent_tokens`
+- **Description:** Returns all tokens deployed via Inky Factory, with full metadata.
+- **Query Parameters:**
+  - `search` (optional): Search by name, symbol, or contract address
+  - `network` (optional): Filter by network (e.g., `ink`, `base`, `ethereum`, `bnb`)
+- **Example:** `/recent_tokens?network=ink&search=doge`
+
+---
+
+## Token Launch API
+
+**Request:**
+```http
+POST /launch
+Content-Type: application/json
+```
+
+**Required Fields:**
+- `name` (string): Token name
+- `symbol` (string): Token symbol (ticker)
+- `logo` (string): Base64-encoded PNG or JPEG (see [Image Upload & Resizing](#image-upload--resizing))
+
+**Optional Fields:**
+- `cover_photo` (string): Base64-encoded PNG or JPEG (banner)
+- `description` (string): Project description
+- `website` (string): Project website URL
+- `twitter` (string): X/Twitter URL
+- `telegram` (string): Telegram URL
+- `discord` (string): Discord URL
+
+**Sample Request:**
+```json
+{
+  "name": "MyToken",
+  "symbol": "MTK",
+  "logo": "<base64 string>",
+  "cover_photo": "<base64 string>",
+  "description": "A cool new token",
+  "website": "https://mytoken.com",
+  "twitter": "https://twitter.com/mytoken",
+  "telegram": "https://t.me/mytoken",
+  "discord": "https://discord.gg/mytoken"
+}
+```
+
+**Sample Response:**
+```json
+{
+  "status": "success",
+  "contract_address": "0x...",
+  "logo_url": "https://.../logo.png",
+  "cover_photo_url": "https://.../cover.png",
+  "message": "Token deployed successfully"
+}
+```
+
+---
+
+## Token Metadata API
+
+**Request:**
+```http
+GET /recent_tokens?network=ink&search=doge
+```
+
+**Response:**
+```json
+[
+  {
+    "contract_address": "0x...",
+    "name": "MyToken",
+    "symbol": "MTK",
+    "logo_url": "https://.../logo.png",
+    "cover_photo_url": "https://.../cover.png",
+    "description": "A cool new token",
+    "website": "https://mytoken.com",
+    "twitter": "https://twitter.com/mytoken",
+    "telegram": "https://t.me/mytoken",
+    "discord": "https://discord.gg/mytoken",
+    "network": "ink",
+    "timestamp": 1710000000
+  },
+  ...
+]
+```
+
+---
+
+## Image Upload & Resizing
+
+**To ensure fast uploads and optimal display, you must resize images before sending them to the API.**
+
+- **Logo:** Max 100x100 pixels (PNG or JPEG recommended)
+- **Cover Photo:** 1360x320 pixels (PNG or JPEG recommended)
+- **Convert images to base64-encoded strings** before including in the JSON payload.
+
+**Sample JavaScript (browser) image resize function:**
+```js
+function resizeImage(file, maxWidth, maxHeight, callback) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      if (width > maxWidth || height > maxHeight) {
+        if (width / height > maxWidth / maxHeight) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        } else {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      callback(canvas.toDataURL('image/png').split(',')[1]); // base64 string
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+```
+
+---
+
+## Sample Integration Flow
+
+1. **User fills out token info and uploads images in your app.**
+2. **Resize images on the frontend** (see above) and convert to base64.
+3. **POST all data to `/launch`** as shown above.
+4. **Display success/failure to the user.**
+5. **Fetch and display token metadata using `/recent_tokens`** for live stats and discovery.
+
+---
+
+## Displaying Inky Factory Tokens in Your App
+
+If you want to display all tokens created via Inky Factory in your application (for example, in a trading interface, token explorer, or analytics dashboard), you can use the **Token Metadata API** to fetch and sync the full list of tokens and their metadata.
+
+### **How to Fetch All Tokens**
+- **Endpoint:** `GET /recent_tokens`
+- **Returns:** All tokens deployed via Inky Factory, with full metadata (name, symbol, contract address, logo, cover photo, description, social links, etc.)
+- **Supports:**
+  - **Filtering by network:** (e.g., `?network=ink`)
+  - **Searching by name, symbol, or contract address:** (e.g., `?search=doge`)
+
+**Example Request:**
+```http
+GET /recent_tokens?network=ink
+```
+
+**Example Response:**
+```json
+[
+  {
+    "contract_address": "0x...",
+    "name": "MyToken",
+    "symbol": "MTK",
+    "logo_url": "https://.../logo.png",
+    "cover_photo_url": "https://.../cover.png",
+    "description": "A cool new token",
+    "website": "https://mytoken.com",
+    "twitter": "https://twitter.com/mytoken",
+    "telegram": "https://t.me/mytoken",
+    "discord": "https://discord.gg/mytoken",
+    "network": "ink",
+    "timestamp": 1710000000
+  },
+  ...
+]
+```
+
+### **Best Practices for Displaying Tokens**
+- **Sync regularly:** Query the `/recent_tokens` endpoint periodically to keep your token list up to date.
+- **Filter by network:** Use the `network` parameter to show only tokens relevant to a specific chain (e.g., `ink`, `base`, `ethereum`, `bnb`).
+- **Search and filter:** Use the `search` parameter for user-driven search or filtering in your UI.
+- **Display metadata:** Show token name, symbol, logo, cover photo, and social links for a rich user experience.
+- **Link to contract explorers:** Use the `contract_address` to link to EVM explorers (e.g., InkScan, Etherscan, etc.).
+
+### **Use Case: EVM Trading App**
+By integrating this endpoint, your EVM trading app (such as the one owned by Kraken) can:
+- Display all Inky Factory tokens for trading, analytics, or discovery
+- Show live token stats, branding, and social links
+- Enable users to search, filter, and interact with the full Inky Factory ecosystem
+
+**This enables seamless ecosystem integration and ensures your users always have access to the latest tokens launched via Inky Factory.**
+
+---
+
+## Best Practices & Recommendations
+- **Validate all required fields** before sending requests.
+- **Resize and compress images** to keep payloads small (<2MB per image recommended).
+- **Handle API errors gracefully** and display clear messages to users.
+- **Cache token metadata** if you expect high traffic.
+- **Contact us for API keys or higher rate limits** if you plan to launch at scale.
+
+---
+
+## Support
+For questions, support, or partnership requests, contact the Inky Factory team at [support@inkyfactory.com] or via our official channels. 
