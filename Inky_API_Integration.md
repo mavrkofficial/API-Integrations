@@ -51,6 +51,51 @@ You can:
 
 ---
 
+## Initial Buy Amount (First Buyer Feature)
+
+When launching a token on Inky Factory, users have the option to become the **first buyer** of their token by purchasing a specified amount of tokens at launch. This is called the **Initial Buy Amount** feature.
+
+### **What is Initial Buy Amount?**
+- The initial buy amount is the amount of ETH (in units, e.g., `0.000001`) that the user wants to use to purchase their own token immediately after it is deployed.
+- This makes the creator the first buyer, sets the initial market cap, and provides instant liquidity to the pool.
+- The minimum allowed is typically `0.000001` ETH, but users can choose a higher amount if they wish.
+
+### **How to Add This to Your UI**
+- In your token launch form, add an input (slider, number field, etc.) where the user can specify how much ETH they want to use for the initial buy.
+- Present the option to use the minimum (e.g., `0.000001` ETH) or let the user enter a custom amount.
+- Include the chosen value as the `initialBuyAmount` field in your API request payload.
+
+**Example UI Flow:**
+1. User fills out token info and uploads images.
+2. User is prompted: "Would you like to be the first buyer of your token at launch?"
+3. User selects an amount of ETH to use for the initial buy (minimum or custom).
+4. The selected amount is sent as `initialBuyAmount` in the launch API request.
+
+### **API Usage**
+
+**Add this field to your Token Launch API request:**
+- `initialBuyAmount` (string or number): Amount of ETH to use for the initial buy (e.g., `"0.0005"`)
+
+**Sample Request:**
+```json
+{
+  "name": "MyToken",
+  "symbol": "MTK",
+  "logo": "<base64 string>",
+  "cover_photo": "<base64 string>",
+  "description": "A cool new token",
+  "website": "https://mytoken.com",
+  "twitter": "https://twitter.com/mytoken",
+  "telegram": "https://t.me/mytoken",
+  "discord": "https://discord.gg/mytoken",
+  "initialBuyAmount": "0.005"
+}
+```
+
+**If omitted, the backend will use the default minimum amount.**
+
+---
+
 ## Token Launch API
 
 **Request:**
@@ -71,6 +116,7 @@ Content-Type: application/json
 - `twitter` (string): X/Twitter URL
 - `telegram` (string): Telegram URL
 - `discord` (string): Discord URL
+- `initialBuyAmount` (string or number): Amount of ETH to use for the initial buy (see [Initial Buy Amount](#initial-buy-amount-first-buyer-feature))
 
 **Sample Request:**
 ```json
@@ -83,7 +129,8 @@ Content-Type: application/json
   "website": "https://mytoken.com",
   "twitter": "https://twitter.com/mytoken",
   "telegram": "https://t.me/mytoken",
-  "discord": "https://discord.gg/mytoken"
+  "discord": "https://discord.gg/mytoken",
+  "initialBuyAmount": "0.005"
 }
 ```
 
