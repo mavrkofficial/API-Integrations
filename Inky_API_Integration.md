@@ -18,9 +18,9 @@ Welcome to the Inky Factory API! This guide will help you integrate token deploy
 
 ## Overview
 Inky Factory enables:
-- Cross-chain EVM token launches (ETH, Base, Ink, BNB, and more)
+- Token deployments on Ink (Ethereum Layer 2)
 - Custom branding and metadata for each token
-- Real-time token metadata and stats
+- Real-time token metadata and deployment information
 
 You can:
 - Launch new tokens programmatically from your app, including image/logo uploads
